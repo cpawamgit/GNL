@@ -29,7 +29,6 @@ typedef struct		s_fd
 	char			*swap;
 	struct s_fd		*prev;
 	struct s_fd		*next;
-	struct s_fd		*swap;
 	//possible d'ecrire un variable qui dirait que la lecture du FD est terminée
 }					t_fd;
 

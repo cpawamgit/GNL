@@ -45,7 +45,7 @@
 
 	}
 }*/
-t_fd	*ft_new_permabuffer(int fd, t_fd *)
+t_fd	*ft_new_permabuffer(int fd, t_fd *prev, t_fd *next)
 {
 	t_fd *new;
 	new = NULL;
@@ -56,8 +56,8 @@ t_fd	*ft_new_permabuffer(int fd, t_fd *)
 	new->line = (char *)malloc(sizeof(char));
 	if (new->line)
 		new->line[0] = '\0';
-	new->prev = NULL;
-	new->next = NULL;
+	new->prev = prev;
+	new->next = next;
 	new->swap = NULL;
 	return (new);
 }
@@ -77,7 +77,7 @@ t_fd	*ft_check_registered_fd(int fd, t_fd *permabuffer)
 		}
 	}
 	else
-		while (permabuffer->prev != NULL && fd < permabuffer->fd)
+		while (permabuffer->prev != NULL && permabuffer->prev->fd >= fd)
 			permabuffer = permabuffer->prev;
 		if (permabuffer->fd != fd)
 		{
@@ -151,7 +151,12 @@ int	get_next_line(const int fd, char **line)
 		permabuffer = ft_check_registered_fd(fd, permabuffer);
 
 
-	
+	printf("fd en cours:%d\n\n", permabuffer->fd);
+	if (permabuffer->next)
+		printf("fd next:%d\n", permabuffer->next->fd);
+	if (permabuffer->prev)
+		printf("fd prev :%d\n", permabuffer->prev->fd);
+	printf("-------------------------\n");
 
 
 
@@ -163,11 +168,7 @@ int	get_next_line(const int fd, char **line)
 
 
 
-
-
-
-
-
+/*
 
 	//il faut check le line de FD a free apres un eof
 	if ((charsread = read(fd, buffer, BUFF_SIZE)) != 0)
@@ -211,6 +212,8 @@ int	get_next_line(const int fd, char **line)
 		}
 		printf("check 7\n");
 	}
+
 	*line = permabuffer->line;
+	*/
 	return (0);
 }
