@@ -76,7 +76,8 @@ t_fd	*ft_check_registered_fd(int fd, t_fd *permabuffer)
 			permabuffer = permabuffer->next;
 		}
 	}
-	else
+	else if (fd < permabuffer->fd)
+	{
 		while (permabuffer->prev != NULL && permabuffer->prev->fd >= fd)
 			permabuffer = permabuffer->prev;
 		if (permabuffer->fd != fd)
@@ -84,6 +85,7 @@ t_fd	*ft_check_registered_fd(int fd, t_fd *permabuffer)
 			permabuffer->prev = ft_new_permabuffer(fd, permabuffer->prev, permabuffer);
 			permabuffer = permabuffer->prev;
 		}
+	}
 		return (permabuffer);
 }
 
@@ -127,7 +129,9 @@ int	get_next_line(const int fd, char **line)
 	loop = 0;
 	if (fd < 0 /* ou autre erreur */)
 		return (-1);
+		//i guess i can onclude the  zeroing buffer into ft_chech_registered
 	ft_bzero(buffer, BUFF_SIZE);
+	// i certainly can remove the if
 	if (permabuffer == NULL || fd != permabuffer->fd)
 		permabuffer = ft_check_registered_fd(fd, permabuffer);
 	if (permabuffer->line != NULL)
