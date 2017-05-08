@@ -93,9 +93,7 @@ int	ft_check_bslashn_oef(int charsread, char *buffer, int *bslashn)
 	int i;
 
 	i = 0;
-	if (BUFF_SIZE > charsread)
-		return (1);
-	while (i < charsread)
+	while ()
 	{
 		if (buffer[i] == '\n')
 		{
@@ -109,30 +107,11 @@ int	ft_check_bslashn_oef(int charsread, char *buffer, int *bslashn)
 
 // ft_cut_and_stock cut the buffer from the first bslashn it founds, all 
 // the first part being joined to the perma->line, and the rest going to perma->swap
-char	*ft_cut_and_stock(t_fd *permabuffer, int bslashn, char *buffer)
+char	*ft_cut_and_stock(t_fd *permabuffer, char bslashn, char *buffer)
 {
-	int i;
-	int j;
-
-	i = BUFF_SIZE - bslashn;
-	j = 0;
-	if (i > 0)
-	{
-		buffer[bslashn] = '\0';
-		permabuffer->swap = (char *)malloc(sizeof(char) * i);
-		if (permabuffer->swap)
-		{
-			i--;
-			permabuffer->swap[i] = '\0';
-			while (i > 0)
-			{
-				i--;
-				j++;
-				permabuffer->swap[i] = buffer[BUFF_SIZE - j];
-			}
-		}
-	}
-	permabuffer->line = ft_strjoin(permabuffer->line, buffer);
+	if (buffer == 0)
+		permabuffer->swap = (ft_strjoin(permabuffer->swap, bslashn + 1));
+	ft_strdel(&bslashn);
 	return (permabuffer->line);
 }
 
@@ -141,14 +120,37 @@ int	get_next_line(const int fd, char **line)
 	//free le maillon avant de si perma->eof est a 1 lors du check
 	static t_fd *permabuffer = NULL;	
 	char buffer[BUFF_SIZE];
+	char *bslashn;
 	int	charsread;
-	int bslashn;
+	int loop;
 
-	if (fd < 0)
+	loop = 0;
+	if (fd < 0 /* ou autre erreur */)
 		return (-1);
 	ft_bzero(buffer, BUFF_SIZE);
 	if (permabuffer == NULL || fd != permabuffer->fd)
 		permabuffer = ft_check_registered_fd(fd, permabuffer);
+	if (permabuffer->line != NULL)
+	{
+		ft_strdel(&permabuffer->line);
+		permabuffer->line = ft_strjoin(permabuffer->line, permabuffer->swap);
+		ft_strdel(&permabuffer->swap);
+	}
+	while (loop == 1)
+	{
+		if ((bslashn = ft_strchr(permabuffer->line, '\n') != NULL))
+		{
+			*line = ft_cut_and_stock(permabuffer, bslashn, buffer);
+			return (1);
+		}
+		if ((charsread = read(fd, buffer, BUFF_SIZE)) != 0)
+			permabuffer->line = ft_strjoin(permabuffer->line, buffer);
+		else
+			loop = 0;
+	}
+	return (0);
+
+
 
 
 	printf("fd en cours:%d\n\n", permabuffer->fd);
