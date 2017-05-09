@@ -55,10 +55,20 @@ t_fd	*ft_new_permabuffer(int fd, t_fd *prev, t_fd *next)
 	new->fd = fd;
 	new->line = (char *)malloc(sizeof(char));
 	if (new->line)
+	{
 		new->line[0] = '\0';
+		////printf("check n 12\n");
+
+	}
 	new->prev = prev;
 	new->next = next;
-	new->swap = NULL;
+	new->swap = (char *)malloc(sizeof(char));
+	if (new->swap)
+	{
+		new->swap[0] = '\0';
+		////printf("check n 12\n");
+
+	}
 	return (new);
 }
 
@@ -86,10 +96,12 @@ t_fd	*ft_check_registered_fd(int fd, t_fd *permabuffer)
 			permabuffer = permabuffer->prev;
 		}
 	}
+	////printf("check n 2\n");
+
 		return (permabuffer);
 }
 
-
+/*
 int	ft_check_bslashn_oef(int charsread, char *buffer, int *bslashn)
 {
 	int i;
@@ -106,14 +118,25 @@ int	ft_check_bslashn_oef(int charsread, char *buffer, int *bslashn)
 	}
 	return (0);
 }
+*/
 
 // ft_cut_and_stock cut the buffer from the first bslashn it founds, all 
 // the first part being joined to the perma->line, and the rest going to perma->swap
-char	*ft_cut_and_stock(t_fd *permabuffer, char bslashn, char *buffer)
+char	*ft_cut_and_stock(t_fd *permabuffer, char *bslashn, char *buffer)
 {
-	if (buffer == 0)
+	printf("entree dans ft_cut_and_stock\n");
+	//printf("enter cut and stock\n");
+	//if (ft_strlen(buffer) == 0)
+	//{
+	printf("valeur de bslashn : %s\n", bslashn + 1);
 		permabuffer->swap = (ft_strjoin(permabuffer->swap, bslashn + 1));
-	ft_strdel(&bslashn);
+		printf("Valeur de swap : %s\n", permabuffer->swap);
+		//free(bslashn);
+		//bslashn = NULL;
+		//bslashn[0] = '\0';
+		//ft_strdel(&bslashn);
+	//}
+	
 	return (permabuffer->line);
 }
 
@@ -126,29 +149,61 @@ int	get_next_line(const int fd, char **line)
 	int	charsread;
 	int loop;
 
-	loop = 0;
+	loop = 1;
 	if (fd < 0 /* ou autre erreur */)
 		return (-1);
-		//i guess i can onclude the  zeroing buffer into ft_chech_registered
+		//i guess i can include the  zeroing buffer into ft_chech_registered
 	ft_bzero(buffer, BUFF_SIZE);
+	////printf("check n 1\n");
 	// i certainly can remove the if
 	if (permabuffer == NULL || fd != permabuffer->fd)
-		permabuffer = ft_check_registered_fd(fd, permabuffer);
-	if (permabuffer->line != NULL)
 	{
-		ft_strdel(&permabuffer->line);
+		permabuffer = ft_check_registered_fd(fd, permabuffer);
+		//printf("check n 14\n");
+
+	}
+	if (ft_strlen(permabuffer->line) > 0)
+	{
+		printf("check n 3\n");
+
+		//free(permabuffer->line);
+		//permabuffer->line = NULL;
+		printf("******Etat de line apres le free*****\n%s\n", permabuffer->line);
 		permabuffer->line = ft_strjoin(permabuffer->line, permabuffer->swap);
-		ft_strdel(&permabuffer->swap);
+		printf("-*-*-*-*Etat de line apres le join%s\n", permabuffer->line);
+		free(permabuffer->swap);
+		////printf("check n 4\n");
+
 	}
 	while (loop == 1)
 	{
-		if ((bslashn = ft_strchr(permabuffer->line, '\n') != NULL))
+		printf("check n 15\n");
+		if ((bslashn = ft_strchr(permabuffer->line, '\n')) != NULL)
 		{
+			printf("check n 5\n");
+
 			*line = ft_cut_and_stock(permabuffer, bslashn, buffer);
 			return (1);
 		}
+		////printf("check n 11\n");
+
 		if ((charsread = read(fd, buffer, BUFF_SIZE)) != 0)
+		{
+			////printf("entree dans le read\n");
+			printf("Permabuufer->Line avant strjoin read : %s\n", permabuffer->line);
 			permabuffer->line = ft_strjoin(permabuffer->line, buffer);
+			printf("Permabuufer->Line apres strjoin read : %s\n", permabuffer->line);
+			printf("Longueur apres read : %zu\n", ft_strlen(permabuffer->line));
+			////printf("join successful after read\n");
+			////printf("etat de perma->line :%s\n", permabuffer->line);
+			////printf("----------------------------\n");
+			////printf("etat de perma teste avec un putstr : \n");
+			//ft_putstr(permabuffer->line);
+			//ft_putstr("\n");
+			////printf("----------------------------\n");
+			////printf("\n");
+
+		}
 		else
 			loop = 0;
 	}
@@ -157,12 +212,12 @@ int	get_next_line(const int fd, char **line)
 
 
 
-	printf("fd en cours:%d\n\n", permabuffer->fd);
+	////printf("fd en cours:%d\n\n", permabuffer->fd);
 	if (permabuffer->next)
-		printf("fd next:%d\n", permabuffer->next->fd);
+		////printf("fd next:%d\n", permabuffer->next->fd);
 	if (permabuffer->prev)
-		printf("fd prev :%d\n", permabuffer->prev->fd);
-	printf("-------------------------\n");
+		////printf("fd prev :%d\n", permabuffer->prev->fd);
+	////printf("-------------------------\n");
 
 
 
@@ -183,11 +238,11 @@ int	get_next_line(const int fd, char **line)
 		if ((permabuffer = ft_check_registered_fd(fd, permabuffer)) == NULL)
 		{// si non on le crée
 			permabuffer = ft_new_permabuffer(fd);
-			printf("check 1\n");
+			////printf("check 1\n");
 		}//si oui on l'ajoute et on check si \n ou eof apres
 		if ((permabuffer = ft_check_registered_fd(fd, permabuffer)) != NULL)
 		{
-			printf("check 2\n");
+			////printf("check 2\n");
 			//I have to create a function that check if there is something in swap,
 			//and in that case, transfer it to line, then free swap. And check if bslashn
 			//are found in it.
@@ -195,19 +250,19 @@ int	get_next_line(const int fd, char **line)
 			//que line soit NULL ou non on concatene
 			while (bslashn == 0 && permabuffer->eof == 0)
 			{
-				printf("check 3\n");
+				////printf("check 3\n");
 				if (ft_check_bslashn_oef(charsread, buffer, &bslashn) == 1)
 				{//cas de l'oef
-			printf("check 4\n");
+			////printf("check 4\n");
 					permabuffer->line = ft_strjoin(permabuffer->line, buffer);
 					permabuffer->eof = 1;
 					*line = permabuffer->line;
 				}
 				else if (ft_check_bslashn_oef(charsread, buffer, &bslashn) == 2)
 				{//cas du bslashn
-					printf("check 5\n");
+					////printf("check 5\n");
 					*line = ft_cut_and_stock(permabuffer, bslashn, buffer);
-					printf("check 6\n");
+					////printf("check 6\n");
 				}
 				else
 				{
@@ -216,7 +271,7 @@ int	get_next_line(const int fd, char **line)
 				}
 			}
 		}
-		printf("check 7\n");
+		////printf("check 7\n");
 	}
 
 	*line = permabuffer->line;
