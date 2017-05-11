@@ -55,20 +55,12 @@ t_fd	*ft_new_permabuffer(int fd, t_fd *prev, t_fd *next)
 	new->fd = fd;
 	new->line = (char *)malloc(sizeof(char));
 	if (new->line)
-	{
 		new->line[0] = '\0';
-		////printf("check n 12\n");
-
-	}
 	new->prev = prev;
 	new->next = next;
 	new->swap = (char *)malloc(sizeof(char));
 	if (new->swap)
-	{
 		new->swap[0] = '\0';
-		////printf("check n 12\n");
-
-	}
 	return (new);
 }
 
@@ -129,8 +121,12 @@ char	*ft_cut_and_stock(t_fd *permabuffer, char *bslashn, char *buffer)
 	//if (ft_strlen(buffer) == 0)
 	//{
 	printf("valeur de bslashn : %s\n", bslashn + 1);
+		bslashn[0] = '\0';
 		permabuffer->swap = (ft_strjoin(permabuffer->swap, bslashn + 1));
+		printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-*-*-*-\n");
 		printf("Valeur de swap : %s\n", permabuffer->swap);
+		printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-*-*-*-\n");
+		printf("Valeur de line : %s\n", permabuffer->line);
 		//free(bslashn);
 		//bslashn = NULL;
 		//bslashn[0] = '\0';
@@ -146,9 +142,12 @@ int	get_next_line(const int fd, char **line)
 	static t_fd *permabuffer = NULL;	
 	char buffer[BUFF_SIZE];
 	char *bslashn;
+	// posibilite d avoir un char * intermediare pour rendre line
 	int	charsread;
 	int loop;
-
+//   !!!!!!!!!!!!!!!!
+	//Inclure la fonction de free et de recolage des maillons
+	// !!!!!!!!!!!!!!!!!!
 	loop = 1;
 	if (fd < 0 /* ou autre erreur */)
 		return (-1);
@@ -158,41 +157,60 @@ int	get_next_line(const int fd, char **line)
 	// i certainly can remove the if
 	if (permabuffer == NULL || fd != permabuffer->fd)
 	{
+		printf("Perma = NULL ou perma != fd\n");
 		permabuffer = ft_check_registered_fd(fd, permabuffer);
 		//printf("check n 14\n");
 
 	}
 	if (ft_strlen(permabuffer->line) > 0)
 	{
-		printf("check n 3\n");
-
-		//free(permabuffer->line);
-		//permabuffer->line = NULL;
-		printf("******Etat de line apres le free*****\n%s\n", permabuffer->line);
+		printf("OOOOOOOOOOO-----------00000000 EMTREE DANS SWAP ET DEL\n");
+		printf("******Etat de line AVANT free*****\n%s\n", permabuffer->line);
+		ft_strdel(&permabuffer->line);
+		permabuffer->line = (char *)malloc(sizeof(char));
+		if (permabuffer->line)
+			permabuffer->line[0] = '\0';
+		printf("******Etat de line free*****\n%s\n", permabuffer->line);
 		permabuffer->line = ft_strjoin(permabuffer->line, permabuffer->swap);
-		printf("-*-*-*-*Etat de line apres le join%s\n", permabuffer->line);
-		free(permabuffer->swap);
+
+		printf("-*-*-*-*Etat de line apres le join : %s\n", permabuffer->line);
+		printf("UUUUUUUUUUUUUU Etat de swap avant le free : %s\n", permabuffer->swap);
+		ft_strdel(&permabuffer->swap);
+		permabuffer->swap = (char *)malloc(sizeof(char));
+		if (permabuffer->swap)
+			permabuffer->swap[0] = '\0';
+		printf("UUUUUUUUUUUUUU Etat de swap apres le free : %s\n", permabuffer->swap);
+	//free(permabuffer->swap);
 		////printf("check n 4\n");
 
 	}
-	while (loop == 1)
+	while (loop == 1 || permabuffer->eof == 1)
 	{
 		printf("check n 15\n");
 		if ((bslashn = ft_strchr(permabuffer->line, '\n')) != NULL)
 		{
+			bslashn = ft_strchr(permabuffer->line, '\n');
+			printf("ETAT DE BSLASHN APRES STRCHR : %s\n", bslashn);
 			printf("check n 5\n");
 
 			*line = ft_cut_and_stock(permabuffer, bslashn, buffer);
+			return (1);
+		}
+		if (permabuffer->eof == 1)
+		{
+			printf("PASSE DANS permabuffer->eof == 1 \n");
+			*line = permabuffer->line;
 			return (1);
 		}
 		////printf("check n 11\n");
 
 		if ((charsread = read(fd, buffer, BUFF_SIZE)) != 0)
 		{
+			printf("valeur de CHARSREAD : %d\n", charsread);
 			////printf("entree dans le read\n");
-			printf("Permabuufer->Line avant strjoin read : %s\n", permabuffer->line);
+			printf(" ***++++*** Permabuufer->Line avant strjoin read : %s\n", permabuffer->line);
 			permabuffer->line = ft_strjoin(permabuffer->line, buffer);
-			printf("Permabuufer->Line apres strjoin read : %s\n", permabuffer->line);
+			printf(" ***+++*** Permabuufer->Line apres strjoin read : %s\n", permabuffer->line);
 			printf("Longueur apres read : %zu\n", ft_strlen(permabuffer->line));
 			////printf("join successful after read\n");
 			////printf("etat de perma->line :%s\n", permabuffer->line);
@@ -205,7 +223,10 @@ int	get_next_line(const int fd, char **line)
 
 		}
 		else
+		{
 			loop = 0;
+			permabuffer->eof = 1;
+		}
 	}
 	return (0);
 

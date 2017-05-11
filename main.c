@@ -7,18 +7,21 @@ int	main(int argc, char **argv)
 
 	fd = open(argv[1], O_RDONLY);
 	printf("fd : %d\n", fd);
+	printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n\n\n");
 	printf("Premier Appel\n");
 	printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n");
 	get_next_line(fd, &line);
 	ft_putstr("line returned :");
 	ft_putstr(line);
 	write(1, "\n", 1);
+	printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n\n\n");
 	printf("Deuxieme Appel\n");
 	printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n");
 	get_next_line(fd, &line);
 	ft_putstr("line returned :");
 	ft_putstr(line);
 	write(1, "\n", 1);
+	printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n\n\n");
 	printf("Troisieme Appel\n");
 	printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n");
 	get_next_line(fd, &line);
