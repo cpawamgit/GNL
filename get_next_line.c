@@ -120,7 +120,8 @@ char	*ft_cut_and_stock(t_fd *permabuffer, char *bslashn, char *buffer)
 	////printf("enter cut and stock\n");
 	//if (ft_strlen(buffer) == 0)
 	//{
-	//printf("valeur de bslashn : %s\n", bslashn + 1);
+	//printf("*** Valeur de bslashn + 1 a l'ENTREE de cut and stock: %s\n", bslashn + 1);
+	//printf("*** Valeur de SWAP a l ENTREE de cut and stock : %s\n", permabuffer->swap);
 		bslashn[0] = '\0';
 		permabuffer->swap = (ft_strjoin(permabuffer->swap, bslashn + 1));
 		//printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-*-*-*-\n");
@@ -132,6 +133,7 @@ char	*ft_cut_and_stock(t_fd *permabuffer, char *bslashn, char *buffer)
 		//bslashn[0] = '\0';
 		//ft_strdel(&bslashn);
 	//}
+		//printf("*** Valeur de SWAP a la SORTIE de cut and stock : %s\n", permabuffer->swap);
 	
 	return (permabuffer->line);
 }
@@ -140,7 +142,7 @@ int	get_next_line(const int fd, char **line)
 {
 	//free le maillon avant de si perma->eof est a 1 lors du check
 	static t_fd *permabuffer = NULL;	
-	char buffer[BUFF_SIZE];
+	char *buffer;
 	char *bslashn;
 	// posibilite d avoir un char * intermediare pour rendre line
 	int	charsread;
@@ -148,11 +150,14 @@ int	get_next_line(const int fd, char **line)
 //   !!!!!!!!!!!!!!!!
 	//Inclure la fonction de free et de recolage des maillons
 	// !!!!!!!!!!!!!!!!!!
+	bslashn = NULL;
+	buffer = NULL;
+	buffer = (char*)malloc(sizeof(char) * BUFF_SIZE + 1);
+	
 	loop = 1;
 	if (fd < 0 /* ou autre erreur */)
 		return (-1);
 		//i guess i can include the  zeroing buffer into ft_chech_registered
-	ft_bzero(buffer, BUFF_SIZE);
 	//////printf("check n 1\n");
 	// i certainly can remove the if
 	if (permabuffer == NULL || fd != permabuffer->fd)
@@ -160,8 +165,8 @@ int	get_next_line(const int fd, char **line)
 		//printf("Perma = NULL ou perma != fd\n");
 		permabuffer = ft_check_registered_fd(fd, permabuffer);
 		////printf("check n 14\n");
-
 	}
+			//printf("*** Etat de swap au debut de GNL : %s\n", permabuffer->swap);
 	if (ft_strlen(permabuffer->line) > 0)
 	{
 		//printf("OOOOOOOOOOO-----------00000000 EMTREE DANS SWAP ET DEL\n");
@@ -182,17 +187,15 @@ int	get_next_line(const int fd, char **line)
 		//printf("UUUUUUUUUUUUUU Etat de swap apres le free : %s\n", permabuffer->swap);
 	//free(permabuffer->swap);
 		//////printf("check n 4\n");
-
 	}
 	while (loop == 1 || permabuffer->eof == 1)
 	{
 		//printf("check n 15\n");
 		if ((bslashn = ft_strchr(permabuffer->line, '\n')) != NULL)
 		{
-			bslashn = ft_strchr(permabuffer->line, '\n');
 			//printf("ETAT DE BSLASHN APRES STRCHR : %s\n", bslashn);
 			//printf("check n 5\n");
-
+			//printf("*** Valeur de bslashn AVANT L ENTREE dans cut and stock%s\n", bslashn);
 			*line = ft_cut_and_stock(permabuffer, bslashn, buffer);
 			return (1);
 		}
@@ -200,10 +203,10 @@ int	get_next_line(const int fd, char **line)
 		{
 			//printf("PASSE DANS permabuffer->eof == 1 \n");
 			*line = permabuffer->line;
-			return (1);
+			return (0);
 		}
 		//////printf("check n 11\n");
-
+		ft_bzero(buffer, BUFF_SIZE);
 		if ((charsread = read(fd, buffer, BUFF_SIZE)) != 0)
 		{
 			//printf("valeur de CHARSREAD : %d\n", charsread);
