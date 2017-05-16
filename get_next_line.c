@@ -77,7 +77,7 @@ int	ft_reader(t_fd *permabuffer, char *buffer, char **line, int fd)
 			*line = permabuffer->line;
 			return (0);
 		}
-		ft_bzero(buffer, BUFF_SIZE);
+		//ft_bzero(buffer, BUFF_SIZE);
 		if ((read(fd, buffer, BUFF_SIZE)) != 0)
 			permabuffer->line = ft_strjoin(permabuffer->line, buffer);
 		else
@@ -109,14 +109,26 @@ int	get_next_line(const int fd, char **line)
 	//Inclure la fonction de free et de recolage des maillons
 	// !!!!!!!!!!!!!!!!!!
 		// posibilite d avoir un char * intermediare pour rendre line
-	static t_fd *permabuffer = NULL;	
+	static t_fd *permabuffer = NULL;
 	char *buffer;
-
 	buffer = NULL;
 	buffer = (char*)malloc(sizeof(char) * BUFF_SIZE + 1);	
 	if (fd < 0 /* ou autre erreur */)
 		return (-1);
-		permabuffer = ft_check_registered_fd(fd, permabuffer);
+		permabuffer = ft_check_registered_fd(fd, permabuffer);		
+	/*if (permabuffer->eof == 1)
+	{
+		if (permabuffer->prev != NULL || permabuffer->next != NULL)
+		{
+			if (permabuffer->next != NULL)
+			permabuffer->next->prev = permabuffer->prev;
+			if (permabuffer->prev != NULL)
+			permabuffer->prev->next = permabuffer->next;
+			//free(permabuffer);
+			//permabuffer == NULL;
+		}
+
+	}*/
 	ft_del_if_needed(permabuffer);
 	return (ft_reader(permabuffer, buffer, line, fd));
 }
