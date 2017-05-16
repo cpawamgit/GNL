@@ -55,42 +55,39 @@ t_fd	*ft_check_registered_fd(int fd, t_fd *permabuffer)
 			permabuffer = permabuffer->prev;
 		}
 	}
-	//////printf("check n 2\n");
-
 		return (permabuffer);
 }
 
-char	*ft_cut_and_stock(t_fd *permabuffer, char *bslashn, char *buffer)
+int	ft_reader(t_fd *permabuffer, char *buffer, char **line, int fd)
 {
+	char *bslashn;
 
-		bslashn[0] = '\0';
-		permabuffer->swap = (ft_strjoin(permabuffer->swap, bslashn + 1));
-	return (permabuffer->line);
+	bslashn = NULL;
+	while (bslashn == NULL || permabuffer->eof == 1)
+	{
+		if ((bslashn = ft_strchr(permabuffer->line, '\n')) != NULL)
+		{
+			bslashn[0] = '\0';
+			permabuffer->swap = (ft_strjoin(permabuffer->swap, bslashn + 1));
+			*line = permabuffer->line;
+			return (1);
+		}
+		if (permabuffer->eof == 1)
+		{
+			*line = permabuffer->line;
+			return (0);
+		}
+		ft_bzero(buffer, BUFF_SIZE);
+		if ((read(fd, buffer, BUFF_SIZE)) != 0)
+			permabuffer->line = ft_strjoin(permabuffer->line, buffer);
+		else
+			permabuffer->eof = 1;
+	}
+	return (0);
 }
 
-int	get_next_line(const int fd, char **line)
+void	ft_del_if_needed(t_fd *permabuffer)
 {
-	//free le maillon avant de si perma->eof est a 1 lors du check
-	static t_fd *permabuffer = NULL;	
-	char *buffer;
-	char *bslashn;
-	// posibilite d avoir un char * intermediare pour rendre line
-	int	charsread;
-	int loop;
-//   !!!!!!!!!!!!!!!!
-	//Inclure la fonction de free et de recolage des maillons
-	// !!!!!!!!!!!!!!!!!!
-	bslashn = NULL;
-	buffer = NULL;
-	buffer = (char*)malloc(sizeof(char) * BUFF_SIZE + 1);
-	
-	loop = 1;
-	if (fd < 0 /* ou autre erreur */)
-		return (-1);
-	if (permabuffer == NULL || fd != permabuffer->fd)
-	{
-		permabuffer = ft_check_registered_fd(fd, permabuffer);
-	}
 	if (ft_strlen(permabuffer->line) > 0)
 	{
 		ft_strdel(&permabuffer->line);
@@ -103,26 +100,23 @@ int	get_next_line(const int fd, char **line)
 		if (permabuffer->swap)
 			permabuffer->swap[0] = '\0';
 	}
-	while (loop == 1 || permabuffer->eof == 1)
-	{
-		if ((bslashn = ft_strchr(permabuffer->line, '\n')) != NULL)
-		{
-			*line = ft_cut_and_stock(permabuffer, bslashn, buffer);
-			return (1);
-		}
-		if (permabuffer->eof == 1)
-		{
-			*line = permabuffer->line;
-			return (0);
-		}
-		ft_bzero(buffer, BUFF_SIZE);
-		if ((charsread = read(fd, buffer, BUFF_SIZE)) != 0)
-			permabuffer->line = ft_strjoin(permabuffer->line, buffer);
-		else
-		{
-			loop = 0;
-			permabuffer->eof = 1;
-		}
-	}
-	return (0);
+}
+
+int	get_next_line(const int fd, char **line)
+{
+	//free le maillon avant de si perma->eof est a 1 lors du check
+	//   !!!!!!!!!!!!!!!!
+	//Inclure la fonction de free et de recolage des maillons
+	// !!!!!!!!!!!!!!!!!!
+		// posibilite d avoir un char * intermediare pour rendre line
+	static t_fd *permabuffer = NULL;	
+	char *buffer;
+
+	buffer = NULL;
+	buffer = (char*)malloc(sizeof(char) * BUFF_SIZE + 1);	
+	if (fd < 0 /* ou autre erreur */)
+		return (-1);
+		permabuffer = ft_check_registered_fd(fd, permabuffer);
+	ft_del_if_needed(permabuffer);
+	return (ft_reader(permabuffer, buffer, line, fd));
 }
