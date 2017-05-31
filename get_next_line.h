@@ -17,9 +17,7 @@
 # include <fcntl.h>
 # include <unistd.h>
 
-# include <stdio.h> //to remove
-
-#define BUFF_SIZE 32
+#define BUFF_SIZE 1
 
 typedef struct		s_fd
 {
@@ -29,7 +27,6 @@ typedef struct		s_fd
 	char			*swap;
 	struct s_fd		*prev;
 	struct s_fd		*next;
-	//possible d'ecrire un variable qui dirait que la lecture du FD est terminée
 }					t_fd;
 
 int	get_next_line(const int fd, char **line);

@@ -15,9 +15,9 @@
 t_fd	*ft_new_permabuffer(int fd, t_fd *prev, t_fd *next)
 {
 	t_fd *new;
+
 	new = NULL;
 	new = (t_fd *)malloc(sizeof(t_fd));
-	
 	new->eof = 0;
 	new->fd = fd;
 	new->line = (char *)malloc(sizeof(char));
@@ -41,7 +41,8 @@ t_fd	*ft_check_registered_fd(int fd, t_fd *permabuffer)
 			permabuffer = permabuffer->next;
 		if (permabuffer->fd != fd)
 		{
-			permabuffer->next = ft_new_permabuffer(fd, permabuffer, permabuffer->next);
+			permabuffer->next = ft_new_permabuffer(fd, permabuffer,
+				permabuffer->next);
 			permabuffer = permabuffer->next;
 		}
 	}
@@ -51,14 +52,15 @@ t_fd	*ft_check_registered_fd(int fd, t_fd *permabuffer)
 			permabuffer = permabuffer->prev;
 		if (permabuffer->fd != fd)
 		{
-			permabuffer->prev = ft_new_permabuffer(fd, permabuffer->prev, permabuffer);
+			permabuffer->prev = ft_new_permabuffer(fd, permabuffer->prev,
+			permabuffer);
 			permabuffer = permabuffer->prev;
 		}
 	}
-		return (permabuffer);
+	return (permabuffer);
 }
-
-int	ft_reader(t_fd *permabuffer, char *buffer, char **line, int fd)
+/*
+int		ft_reader(t_fd *permabuffer, char *buffer, char **line, int fd)
 {
 	char *bslashn;
 
@@ -68,28 +70,66 @@ int	ft_reader(t_fd *permabuffer, char *buffer, char **line, int fd)
 		if ((bslashn = ft_strchr(permabuffer->line, '\n')) != NULL)
 		{
 			bslashn[0] = '\0';
-			permabuffer->swap = (ft_strjoin(permabuffer->swap, bslashn + 1));
+			bslashn++;
+			while ((char)bslashn == '\n')
+				bslashn++;
+			permabuffer->swap = (ft_strjoin(permabuffer->swap, bslashn));
 			*line = permabuffer->line;
+			printf("Valeur de line avant renvoi : %s\n", *line);
 			return (1);
 		}
 		if (permabuffer->eof == 1)
 		{
 			*line = permabuffer->line;
+			printf("Valeur de line avant renvoi EOF : %s\n", *line);
 			return (0);
 		}
-		//ft_bzero(buffer, BUFF_SIZE);
 		if ((read(fd, buffer, BUFF_SIZE)) != 0)
+		{
 			permabuffer->line = ft_strjoin(permabuffer->line, buffer);
+			printf("Valeur de BUFFER : %s\n", buffer);
+		}
 		else
 			permabuffer->eof = 1;
 	}
 	return (0);
 }
+*/
+int		ft_reader(t_fd *permabuffer, char *buffer, char **line, int fd)
+{
+	char	*bslashn;
+	int	i;
+
+	bslashn = NULL;
+	i = 0;
+	int reader = 0;
+	while (read(fd, buffer, BUFF_SIZE) > 0)
+	{
+		permabuffer->line = ft_strjoin(permabuffer->line, buffer);
+	}
+	if (read(fd, buffer, BUFF_SIZE) == -1)
+		return (-1);
+	while (permabuffer->line && permabuffer->line[i] == '\n')
+		i++;
+	if ((bslashn = ft_strchr(&permabuffer->line[i], '\n')) != NULL)
+	{
+		bslashn[0] = '\0';
+		permabuffer->swap = (ft_strjoin(permabuffer->swap, bslashn + 1));
+		*line = &permabuffer->line[i];
+		return (1);
+	}
+	else
+	{
+		*line = permabuffer->line;
+		return (0);
+	}
+	*line = NULL;
+	return (-1);
+}
 
 void	ft_del_if_needed(t_fd *permabuffer)
 {
-	if (ft_strlen(permabuffer->line) > 0)
-	{
+	
 		ft_strdel(&permabuffer->line);
 		permabuffer->line = (char *)malloc(sizeof(char));
 		if (permabuffer->line)
@@ -99,36 +139,20 @@ void	ft_del_if_needed(t_fd *permabuffer)
 		permabuffer->swap = (char *)malloc(sizeof(char));
 		if (permabuffer->swap)
 			permabuffer->swap[0] = '\0';
-	}
+	
 }
 
-int	get_next_line(const int fd, char **line)
+int		get_next_line(const int fd, char **line)
 {
-	//free le maillon avant de si perma->eof est a 1 lors du check
-	//   !!!!!!!!!!!!!!!!
-	//Inclure la fonction de free et de recolage des maillons
-	// !!!!!!!!!!!!!!!!!!
-		// posibilite d avoir un char * intermediare pour rendre line
 	static t_fd *permabuffer = NULL;
-	char *buffer;
-	buffer = NULL;
-	buffer = (char*)malloc(sizeof(char) * BUFF_SIZE + 1);	
-	if (fd < 0 /* ou autre erreur */)
-		return (-1);
-		permabuffer = ft_check_registered_fd(fd, permabuffer);		
-	/*if (permabuffer->eof == 1)
-	{
-		if (permabuffer->prev != NULL || permabuffer->next != NULL)
-		{
-			if (permabuffer->next != NULL)
-			permabuffer->next->prev = permabuffer->prev;
-			if (permabuffer->prev != NULL)
-			permabuffer->prev->next = permabuffer->next;
-			//free(permabuffer);
-			//permabuffer == NULL;
-		}
+	char		*buffer;
 
-	}*/
+	buffer = NULL;
+	buffer = (char*)malloc(sizeof(char) * BUFF_SIZE + 1);
+	ft_bzero(buffer, BUFF_SIZE);
+	if (fd < 0)
+		return (-1);
+	permabuffer = ft_check_registered_fd(fd, permabuffer);
 	ft_del_if_needed(permabuffer);
 	return (ft_reader(permabuffer, buffer, line, fd));
 }
