@@ -59,55 +59,22 @@ t_fd	*ft_check_registered_fd(int fd, t_fd *permabuffer)
 	}
 	return (permabuffer);
 }
-/*
-int		ft_reader(t_fd *permabuffer, char *buffer, char **line, int fd)
-{
-	char *bslashn;
 
-	bslashn = NULL;
-	while (bslashn == NULL || permabuffer->eof == 1)
-	{
-		if ((bslashn = ft_strchr(permabuffer->line, '\n')) != NULL)
-		{
-			bslashn[0] = '\0';
-			bslashn++;
-			while ((char)bslashn == '\n')
-				bslashn++;
-			permabuffer->swap = (ft_strjoin(permabuffer->swap, bslashn));
-			*line = permabuffer->line;
-			printf("Valeur de line avant renvoi : %s\n", *line);
-			return (1);
-		}
-		if (permabuffer->eof == 1)
-		{
-			*line = permabuffer->line;
-			printf("Valeur de line avant renvoi EOF : %s\n", *line);
-			return (0);
-		}
-		if ((read(fd, buffer, BUFF_SIZE)) != 0)
-		{
-			permabuffer->line = ft_strjoin(permabuffer->line, buffer);
-			printf("Valeur de BUFFER : %s\n", buffer);
-		}
-		else
-			permabuffer->eof = 1;
-	}
-	return (0);
-}
-*/
 int		ft_reader(t_fd *permabuffer, char *buffer, char **line, int fd)
 {
 	char	*bslashn;
-	int	i;
+	int		i;
+	int reader;
 
 	bslashn = NULL;
 	i = 0;
-	int reader = 0;
-	while (read(fd, buffer, BUFF_SIZE) > 0)
+	reader = 0;
+	while ((reader = read(fd, buffer, BUFF_SIZE)) > 0)
 	{
 		permabuffer->line = ft_strjoin(permabuffer->line, buffer);
+		ft_bzero(buffer, BUFF_SIZE);
 	}
-	if (read(fd, buffer, BUFF_SIZE) == -1)
+	if (reader == -1)
 		return (-1);
 	while (permabuffer->line && permabuffer->line[i] == '\n')
 		i++;
@@ -120,16 +87,23 @@ int		ft_reader(t_fd *permabuffer, char *buffer, char **line, int fd)
 	}
 	else
 	{
-		*line = permabuffer->line;
-		return (0);
+		if (ft_strlen(permabuffer->line) == 0)
+		{
+			free(permabuffer->line);
+			return (0);
+		}
+		else
+		{
+			*line = permabuffer->line;
+			return (1);
+		}
 	}
 	*line = NULL;
 	return (-1);
 }
 
 void	ft_del_if_needed(t_fd *permabuffer)
-{
-	
+{	
 		ft_strdel(&permabuffer->line);
 		permabuffer->line = (char *)malloc(sizeof(char));
 		if (permabuffer->line)
@@ -138,8 +112,7 @@ void	ft_del_if_needed(t_fd *permabuffer)
 		ft_strdel(&permabuffer->swap);
 		permabuffer->swap = (char *)malloc(sizeof(char));
 		if (permabuffer->swap)
-			permabuffer->swap[0] = '\0';
-	
+			permabuffer->swap[0] = '\0';	
 }
 
 int		get_next_line(const int fd, char **line)

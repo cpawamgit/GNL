@@ -12,16 +12,20 @@ int	main(int argc, char **argv)
 
 	//fd = open(argv[1], O_RDONLY);
 	fd = open(argv[1], O_RDONLY);
-	fd2 = open(argv[2], O_RDONLY);
-	fd3 = open(argv[3], O_RDONLY);
-	fd4 = open(argv[4], O_RDONLY);
 	//fd2 = open(argv[2], O_RDONLY);
 	//fd3 = open(argv[3], O_RDONLY);
-	for (i = 0; i < 1; i++)
+	//fd4 = open(argv[4], O_RDONLY);
+	//fd2 = open(argv[2], O_RDONLY);
+	//fd3 = open(argv[3], O_RDONLY);
+
+	
+	while (i < 8)
 	{
 	printf("valeur de retour d get_next_line : %d\n", get_next_line(fd, &line));
 	printf("line : %s\n", line);
+	i++;
 	}
+	/*
 	for (i = 0; i < 1; i++)
 	{
 	printf("valeur de retour d get_next_line : %d\n", get_next_line(fd2, &line));
@@ -56,7 +60,7 @@ int	main(int argc, char **argv)
 	{
 	printf("valeur de retour d get_next_line : %d\n", get_next_line(fd4, &line));
 	printf("line : %s\n", line);
-	}
+	}*/
 	//printf("fd : %d\n", fd);
 	//printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n\n\n");
 	//printf("Premier Appel\n");
