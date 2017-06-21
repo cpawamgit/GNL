@@ -5,127 +5,106 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cyrmorin <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2017/02/24 10:58:32 by cyrmorin          #+#    #+#             */
-/*   Updated: 2017/02/24 10:58:34 by cyrmorin         ###   ########.fr       */
+/*   Created: 2017/06/21 21:43:28 by cyrmorin          #+#    #+#             */
+/*   Updated: 2017/06/21 21:43:32 by cyrmorin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-t_fd	*ft_new_permabuffer(int fd, t_fd *prev, t_fd *next)
+static char	*ft_strjoin2(char *s1, char *s2, t_fd *s)
 {
-	t_fd *new;
-
-	new = NULL;
-	new = (t_fd *)malloc(sizeof(t_fd));
-	new->eof = 0;
-	new->fd = fd;
-	new->line = (char *)malloc(sizeof(char));
-	if (new->line)
-		new->line[0] = '\0';
-	new->prev = prev;
-	new->next = next;
-	new->swap = (char *)malloc(sizeof(char));
-	if (new->swap)
-		new->swap[0] = '\0';
-	return (new);
+	s->i = 0;
+	s->j = 0;
+	s->concatstr = (char *)malloc(sizeof(char) * \
+		(ft_strlen(s1) + ft_strlen(s2) + 1));
+	if (!s->concatstr)
+		return (NULL);
+	while (s1[s->i] != '\0')
+	{
+		s->concatstr[s->i] = s1[s->i];
+		s->i++;
+	}
+	while (s2[s->j] != '\0')
+	{
+		s->concatstr[s->i] = s2[s->j];
+		s->i++;
+		s->j++;
+	}
+	s->concatstr[s->i] = '\0';
+	ft_strdel(&s1);
+	return (s->concatstr);
 }
 
-t_fd	*ft_check_registered_fd(int fd, t_fd *permabuffer)
+int			ft_parser(t_fd *s, int fd)
 {
-	if (permabuffer == NULL)
-		permabuffer = ft_new_permabuffer(fd, NULL, NULL);
-	if (fd > permabuffer->fd)
+	s->buffer = ft_memalloc(BUFF_SIZE + 1);
+	s->tmp = ft_strdup(s->stock[fd]);
+	ft_strdel(&s->stock[fd]);
+	while ((s->ret = read(fd, s->buffer, BUFF_SIZE)) >= -1 || 1)
 	{
-		while (permabuffer->next != NULL && permabuffer->next->fd <= fd)
-			permabuffer = permabuffer->next;
-		if (permabuffer->fd != fd)
+		if (s->ret == -1)
+			return (-1);
+		s->tmp = ft_strjoin2(s->tmp, s->buffer, s);
+		if ((s->bslashn = ft_strchr(s->tmp, '\n')) != NULL)
 		{
-			permabuffer->next = ft_new_permabuffer(fd, permabuffer,
-				permabuffer->next);
-			permabuffer = permabuffer->next;
-		}
-	}
-	else if (fd < permabuffer->fd)
-	{
-		while (permabuffer->prev != NULL && permabuffer->prev->fd >= fd)
-			permabuffer = permabuffer->prev;
-		if (permabuffer->fd != fd)
-		{
-			permabuffer->prev = ft_new_permabuffer(fd, permabuffer->prev,
-			permabuffer);
-			permabuffer = permabuffer->prev;
-		}
-	}
-	return (permabuffer);
-}
-
-int		ft_reader(t_fd *permabuffer, char *buffer, char **line, int fd)
-{
-	char	*bslashn;
-	int		i;
-	int reader;
-
-	bslashn = NULL;
-	i = 0;
-	reader = 0;
-	while ((reader = read(fd, buffer, BUFF_SIZE)) > 0)
-	{
-		permabuffer->line = ft_strjoin(permabuffer->line, buffer);
-		ft_bzero(buffer, BUFF_SIZE);
-	}
-	if (reader == -1)
-		return (-1);
-	while (permabuffer->line && permabuffer->line[i] == '\n')
-		i++;
-	if ((bslashn = ft_strchr(&permabuffer->line[i], '\n')) != NULL)
-	{
-		bslashn[0] = '\0';
-		permabuffer->swap = (ft_strjoin(permabuffer->swap, bslashn + 1));
-		*line = &permabuffer->line[i];
-		return (1);
-	}
-	else
-	{
-		if (ft_strlen(permabuffer->line) == 0)
-		{
-			free(permabuffer->line);
-			return (0);
-		}
-		else
-		{
-			*line = permabuffer->line;
+			s->bslashn[0] = '\0';
+			s->stock[fd] = ft_strdup(s->bslashn + 1);
+			s->retline = ft_strdup(s->tmp);
 			return (1);
 		}
+		if (s->ret == 0 && ft_strlen(s->tmp) > 0)
+		{
+			s->retline = ft_strdup(s->tmp);
+			return (2);
+		}
+		if (s->ret == 0 && ft_strlen(s->tmp) == 0)
+			return (0);
+		ft_bzero(s->buffer, BUFF_SIZE);
 	}
-	*line = NULL;
-	return (-1);
+	return (0);
 }
 
-void	ft_del_if_needed(t_fd *permabuffer)
-{	
-		ft_strdel(&permabuffer->line);
-		permabuffer->line = (char *)malloc(sizeof(char));
-		if (permabuffer->line)
-			permabuffer->line[0] = '\0';
-		permabuffer->line = ft_strjoin(permabuffer->line, permabuffer->swap);
-		ft_strdel(&permabuffer->swap);
-		permabuffer->swap = (char *)malloc(sizeof(char));
-		if (permabuffer->swap)
-			permabuffer->swap[0] = '\0';	
-}
-
-int		get_next_line(const int fd, char **line)
+int			ft_reader(t_fd *s, int fd, char **line)
 {
-	static t_fd *permabuffer = NULL;
-	char		*buffer;
+	int ret;
 
-	buffer = NULL;
-	buffer = (char*)malloc(sizeof(char) * BUFF_SIZE + 1);
-	ft_bzero(buffer, BUFF_SIZE);
-	if (fd < 0)
+	if ((ret = ft_parser(s, fd)) == 1)
+	{
+		*line = s->retline;
+		return (1);
+	}
+	else if (ret == 0)
+	{
+		*line = NULL;
+		ft_strdel(&s->retline);
+		return (0);
+	}
+	else if (ret == -1)
+	{
+		*line = NULL;
+		ft_strdel(&s->stock[fd]);
 		return (-1);
-	permabuffer = ft_check_registered_fd(fd, permabuffer);
-	ft_del_if_needed(permabuffer);
-	return (ft_reader(permabuffer, buffer, line, fd));
+	}
+	else if (ret == 2)
+	{
+		*line = s->retline;
+		return (1);
+	}
+	return (99);
+}
+
+int			get_next_line(int fd, char **line)
+{
+	static t_fd	s;
+	int			ret;
+
+	if (fd < 0 || !line || fd > 4999)
+		return (-1);
+	if (!s.stock[fd] || s.stock[fd] == NULL)
+		s.stock[fd] = ft_memalloc(BUFF_SIZE + 1);
+	ret = ft_reader(&s, fd, line);
+	ft_strdel(&s.tmp);
+	ft_strdel(&s.buffer);
+	return (ret);
 }

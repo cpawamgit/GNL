@@ -17,25 +17,19 @@
 # include <fcntl.h>
 # include <unistd.h>
 
-# define BUFF_SIZE 2
+# define BUFF_SIZE 32
 
-/*
 typedef struct		s_fd
 {
-	int				fd;
-	int				eof;
-	char			*line;
-	char			*swap;
-	struct s_fd		*prev;
-	struct s_fd		*next;
-}					t_fd;
-*/
-
-typedef struct		s_fd
-{	char			**lines;
-	char			*returned;
-	int				count;
-	int 			i;
+	char			*stock[5000];
+	char			*bslashn;
+	char			*tmp;
+	char			*retline;
+	char			*buffer;
+	int				ret;
+	int				i;
+	int				j;
+	char			*concatstr;
 }					t_fd;
 
 int					get_next_line(const int fd, char **line);
